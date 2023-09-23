@@ -1,4 +1,5 @@
 import os
+clear = "cls" if os.name == "nt" else "clear"
 
 # T9 skrivsätt
 def my_encode(string):
@@ -28,7 +29,6 @@ def my_encode(string):
     return tempstring
 
 
-print(my_encode("Simon"))
 
 def my_decode(string):
 
@@ -60,12 +60,16 @@ def my_decode(string):
     for char in string: tempstring += get_value(char)
     return tempstring
 
-print(my_decode("7777|444|6|666|66|"))
+
 
 while True:
-    if os.name == "nt": 
-        os.system("cls")
-    else:
-        os.system("clear")
-    user = input("Message to encode\n> ")
-    print(f"Your encoded message\n{my_encode(user)}")
+    os.system(clear)
+    choice = input("What would you like to do?:\n1. Encode\n2. Decode\n> ")
+    if choice == "1" or choice.title() == "Encode":
+        user = input("Message to encode:\n> ")
+        print(f"Your encoded message\n{my_encode(user)}")
+    elif choice == "2" or choice.title() == "Decode":
+        user = input("Message to decode:\n> ")
+        print(f"Your decoded message\n{my_decode(user)}")
+    input("'q' to exit else continue\n >")
+        
