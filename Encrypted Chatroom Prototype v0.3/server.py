@@ -3,6 +3,7 @@ import hashlib
 import socket
 import threading
 import os
+import init_db
 
 os.system('cls') if os.name == 'nt' else os.system('clear')
 host, port = "localhost", 9999
