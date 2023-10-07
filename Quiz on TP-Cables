@@ -1,0 +1,50 @@
+import random
+
+
+yttre = {"Ej Sköldad" : "U",
+         "Skärmad" : "S",
+         "Folierad" : "F",
+         "Skärmad och Folierad" : "SF"}
+yttre_list = [a for a in yttre.keys()]
+
+inre = {"Ej Sköldad" : "UTP",
+        "Folierad" : "FTP"}
+inre_list = [b for b in inre.keys()]
+
+tries, score = 0, 0
+läge = '/'
+print(f'Välkommen till TP-Quiz, programmet är inte case-sensitive.\nSvara ex: "u/utp"')
+print('Skriv "blanksteg" för att ändra till mellanslagläge : "u utp"\n')
+while True:
+    while tries < 10:
+        tries += 1
+        yttrerandom, inrerandom = random.choice(yttre_list), random.choice(inre_list)
+        print(f"Skriv förkortningen för:")
+        while True:
+            userinput = input(f"[{str(yttrerandom)}/{str(inrerandom)}]\n>").strip().upper()
+            if userinput == 'BLANKSTEG':
+                läge = ' '
+                print(f'Blanksteg läge valt, Skriv forward för att ändra tillbaks.\nSvara tex "u utp"');continue
+            elif userinput == 'FORWARD':
+                läge = '/'
+                print(f'Forward slash läge valt: Svara tex "u/utp"');continue
+            
+            else:
+                if läge in userinput:
+                    userinput = userinput.split(läge)
+                    if userinput[0] == yttre[yttrerandom]\
+                    and userinput[1] == inre[inrerandom]:
+                        score += 1
+                        print(f"Korrekt!{'':>50}Poäng: {score}:")
+                    else:
+                        print(f"Fel ! [{userinput[0]}{läge}{userinput[1]}] är inte {yttre[yttrerandom]}{läge}{inre[inrerandom]}")
+                    break
+                else:
+                    if läge == ' ': 
+                        print(f'blanksteg hittades inte i "{userinput}", försök igen.') 
+                    else:
+                        print(f'{läge} hittades inte i "{userinput}", försök igen.')
+                
+    print(f"{'':^30}!Quiz slut!")
+    input(f"{'':^28}Du fick {score}/{tries} rätt!")
+    tries = 0
