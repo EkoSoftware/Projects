@@ -1,0 +1,8 @@
+Hey!
+Ive been working on this for a while now and im happy to say that the results are definately starting to show.
+With this latest update i have added:
+1. Registration and Login stability:
+      Both the server and the client side should no longer throw a tantrum if you deviate from the usual login/registration routine.
+2. Alot of Debugging messages:
+      Ive installed a packet called icecream which prints additional information about a function or object when wrapped around it.
+3. Clear rules for the server and clients to cut the threads of the connection in an orderly manner when needed.
