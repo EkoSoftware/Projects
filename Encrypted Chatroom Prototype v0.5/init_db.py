@@ -1,7 +1,7 @@
 import sqlite3
 import hashlib
 import os
-
+from cryptography.fernet import Fernet
 
 conn = sqlite3.connect('userdata.db')
 cur = conn.cursor()
@@ -14,19 +14,20 @@ CREATE TABLE IF NOT EXISTS userdata (
 )
 """)
 if __name__ == '__main__':
+    username1, password1 = "doggo", hashlib.sha3_256("doggo".encode()).hexdigest()
+    username2, password2 = "admin", hashlib.sha3_256("adminpass".encode()).hexdigest()
     
-    username1, password1 = "doggo", hashlib.sha256("doggo".encode('utf-8')).hexdigest()
-    username2, password2 = "admin", hashlib.sha256("adminpass".encode('utf-8')).hexdigest()
-    username3, password3 = "joshua", hashlib.sha256("joshuapass".encode('utf-8')).hexdigest()
-    username4, password4 = "you", hashlib.sha256("shallnotpass".encode('utf-8')).hexdigest()
-    print(password1)
+    myKey = b'q7qDPOZInGtw50dngbM3MZdVKejQFzYPrURqaks5kxU='
+    myCipher = Fernet(myKey)
+    
+    password1 = hashlib.sha3_256(password1.encode()).hexdigest()
+    password2 = hashlib.sha3_256(password2.encode()).hexdigest()
+
+    #print(type(password2))
 
     cur.execute("INSERT INTO userdata (username, password) VALUES (?,?)", (username1, password1))
     cur.execute("INSERT INTO userdata (username, password) VALUES (?,?)", (username2, password2))
-    cur.execute("INSERT INTO userdata (username, password) VALUES (?,?)", (username3, password3))
-    cur.execute("INSERT INTO userdata (username, password) VALUES (?,?)", (username4, password4))
-    cur.execute("INSERT INTO userdata (username, password) VALUES (?,?)", ("textuser", "textpass"))
-    cur.execute("INSERT INTO userdata (username, password) VALUES (?,?)", ("användarnamn", "lösenord"))
+    
 
     conn.commit()
     conn.close()
