@@ -4,95 +4,129 @@ import hashlib
 from icecream import ic
 import os
 import time
+from cryptography.fernet import Fernet
+# Notis: Kryptering klar,
+# Ska börja rensa upp texten
+
 os.system('cls') if os.name == 'nt' else os.system('clear')
+address, port = "localhost", 9998
 
+# Cipher
+myKey = b'q7qDPOZInGtw50dngbM3MZdVKejQFzYPrURqaks5kxU='
+myCipher = Fernet(myKey)
+def mySend(text):
+    text = text.encode()
+    text = myCipher.encrypt(text)
+    return client.send(text)
 
-address, port = "192.168.1.20", 9999
-
+def myReadClient():
+    message = client.recv(1024)
+    message = myCipher.decrypt(message).decode()
+    return message
     
-
+# Authentication
 def myLogin(client):
     while True:
-        message = client.recv(1024).decode()
-        username =  input(message)
-        client.send(username.encode())
-        passwordrequest = client.recv(1024).decode()
-        password = hashlib.sha256(input(passwordrequest).encode()).hexdigest()
-        client.send(password.encode())
-        authentication = client.recv(1024).decode()
-        if authentication.endswith("successful!"):
-            print(authentication)
-            write_thread = threading.Thread(target=write,args=(username,))
-            write_thread.start()
-            recieve_thread = threading.Thread(target=recieve())
-            recieve_thread.start()
-        else:
-            print(authentication)
-            continue
+        username =  input(myReadClient())
+        mySend(username)
+        
+        password = input(myReadClient())
+        password = hashlib.sha3_256(password.encode()).hexdigest()
+        password = myCipher.encrypt(password.encode())
+        client.send(password)
+        
+        
+        authentication = myReadClient()
+        #time.sleep(1)
+        match authentication.split()[-1]:
+            
+            case 'successful!':
+                print(authentication)
+                threading.Thread(target=write,args=(username,)).start()
+                threading.Thread(target=recieve).start()
 
+            case _:
+                print(authentication)
+                continue
 
+# Registration
 def myRegistration(client):
-    print(f'Write "quit" at any time to return to the main menu.')
-    username = ''
-    while True:
-        username = client.recv(1024).decode()
-        username = input(username)
-        if "quit" == username: break
-        client.send(f"REGISTER {username}".encode())
-        
-        password = client.recv(1024).decode()
-        password = input(password)
-        if password == 'quit': break
-        client.send((hashlib.sha256(password)).hexdigest().encode())
-        auth = client.recv(1024).decode()
-        
-        if auth.endswith("successful!"):
-            print(auth)
-            client.close
-            return
-        else:
-            print(auth)
-            continue
+    try:
+        print(f'\nPlease register your account.')
+        #print(f'\nWrite "quit" at any time to return to the main menu.')
     
-    
-    ic(client.send("CLOSE".encode()*8))
-    ic(client.close)
-    return
+        while True:
+            username = input(myReadClient())
+            match username:
+                case 'quit': break
+                case ______: mySend(f"REGISTER {username}")
 
+            #print(f'[Debug myRegistration (1)] username sent : {username}')
+            password = input(myReadClient())
+            match password:
+                case 'quit': break
+                case ______:
+                    #ic('[Debug myRegistration (2)] password sent :',password)
+                    password = hashlib.sha3_256(password.encode()).hexdigest()
+                    password = password.encode()
+                    password = myCipher.encrypt(password)
+                    client.send(password)
+
+
+                    auth = myReadClient()
+                    #print(auth.split())
+                    ic('[Debug myRegistration (3)]  : Waiting for authentication')
+                    match auth.split()[-1]:
+                        case "successful!":
+                            print(auth);client.close;return
+                        case _:
+                            print(auth);continue
+
+        return
+    
+    except Exception as e:
+        print(f'[Function myRegistration Error]\n{e}!If this is the only text there is a Fernet Error!')    
+
+# Chat Functions
 def recieve():
     try:
         while True:
-            getMsg = client.recv(1024).decode()
-            if not getMsg:
-                print('Connection Lost!')
-                break
-                client.close
-            print(f'[SERVER]: {getMsg}')
+            getMsg = myReadClient()
+            if getMsg: print(f'{getMsg}')
+            
+            
+            else: print('Connection Lost!')
+            client.close
+            break
+    
     except Exception as e:
-        print('RcvExceptionError',e)
+        print(f'[Function "recieve"] ExceptionError:\n{e}')
         
 def write(username):
     try:
         while True:
-            sendMsg = f"{username}: {input(f'{username}: ')}"
-            client.send(sendMsg.encode())
+            text = input(f'{username}: ')
+            sendMsg = f"{username}: {text}"
+            mySend(sendMsg)
+        
     except Exception as e:
-        print('Write ExceptionError: ',e)
-    except KeyboardInterrupt:
-        print('KeyboardInterrupt noted\nShutting down connection.')
-        client.close
+        print(f'[Function "write"] ExceptionError:\n{e}')
+    
 
-
+# Main Loop
 while True:
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((address, port))
+    
     while True:
         userinput = input(f"1. Login\n2. Register\n>")
-        if userinput in "12":
-            if userinput == "1": myLogin(client)
-            if userinput == "2": myRegistration(client)
-            client.close
-            time.sleep(1)
+        match userinput:
+            case "1": myLogin(client)
+            case "2": myRegistration(client)
+            case ___: continue
+        
+        client.close
+        time.sleep(1)
+        break
 
-            break
             
