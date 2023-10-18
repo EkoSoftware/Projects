@@ -21,10 +21,10 @@ myKey = myReadKeys()
 
 def mySend(text):
     text = myCipher(text, myKey)
-    return client.send(text)
+    return client.send(text.encode())
 
 def myReadClient():
-    message = client.recv(1024)
+    message = client.recv(1024).decode()
     message = myDecipher(message, myKey)
     return message
 
@@ -40,7 +40,7 @@ def myLogin(client):
         password = input(myReadClient())
         password = hashlib.sha3_256(password.encode()).hexdigest()
         password = myCipher(password, myKey)
-        client.send(password)
+        client.send(password.encode())
         
         # Validation
         authentication = myReadClient()
@@ -74,7 +74,7 @@ def myRegistration(client):
                 case ______:
                     password = hashlib.sha3_256(password.encode()).hexdigest()
                     password = myCipher(password, myKey)
-                    client.send(password)
+                    client.send(password.encode())
 
             
             # Verification
@@ -122,21 +122,38 @@ def write(username):
 """
              <( This is the Main Menu )>
 """
-# Main Menu
+                    # Main Menu
 while True:
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    address, port = "localhost", 9999
-    client.connect((address, port))
+    address = input("Please enter the IP-Address of the Server you wish to connect to:\n>")
+    match address:
+        case "default": address, port = "192.168.1.20", 9999
+        case "debug"  : address, port = "localhost"   , 9999
+        case _________: 
+            while True:
+                port = int(input("Please enter a portnumber between 9000-65535:\n>"))
+                if 9000 <= port <= 65535: break
     
-    while True:
-        userinput = input(f"1. Login\n2. Register\n>")
-        match userinput:
-            case "1": myLogin(client)
-            case "2": myRegistration(client)
-            case ___: continue
-        
-        client.close
-        time.sleep(1)
-        break
+    try: client.connect((address, port))
+    except ConnectionRefusedError as c:
+        print(c); continue
+    
+    except Exception as e:
+        print(e)
 
+    while True:
+        try:
+            userinput = input(f"1. Login\n2. Register\n>")
+            match userinput:
+                case "1": myLogin(client)
+                case "2": myRegistration(client)
+                case ___: continue
+
+            client.close
+            time.sleep(1)
+            break
+        except Exception as e:
+            print(e)
+            break
+            
             
