@@ -18,7 +18,9 @@ myKey = myReadKeys()
 
 # Creates Serverside account if this file runs independently.
 username = "admin"
-password = hashlib.sha3_256("adminpass".encode()).hexdigest()
+password = "adminpass"
+original_password = password[:]
+password = hashlib.sha3_256(password.encode()).hexdigest()
 myCipher(password, myKey)
 password = hashlib.sha3_256(password.encode()).hexdigest()
 
@@ -27,6 +29,6 @@ cur.execute("SELECT * FROM userdata WHERE username = ? AND password = ?", (usern
 if not cur.fetchall():
     cur.execute("INSERT INTO userdata (username, password) VALUES (?,?)", (username, password))
     conn.commit()
-    print(f'{username} were created!')
+    print(f'Account {username} was created with password {original_password}!')
     conn.close()
 
