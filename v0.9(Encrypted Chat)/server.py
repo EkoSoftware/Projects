@@ -1,7 +1,9 @@
-import sqlite3, hashlib, socket, threading, os
+import sqlite3, hashlib, socket, threading
 from myEncryption import myCipher, myDecipher
 from myCreateKeyFile import myGenerateKeys, myReadKeys
 import init_db
+
+
 
 """ 
 Status:
@@ -11,17 +13,26 @@ Status:
     Krypteringsnyckel-generering funkar
     Filprotokollet för kryptering implementerat
 Att göra:
-#
 #Whisper funktion
 """
 
-
-
+# Uncomment if you want a clear commandline
+#import os
+#os.system('cls') if os.name == 'nt' else os.system('clear')
 
 # Initialize Server
-os.system('cls') if os.name == 'nt' else os.system('clear')
-host, port = "localhost", 9999
 
+while True:
+    host = input("Server IP or localhost?")
+    match host:
+        case "debug"      : host, port = "localhost"   , 9999;break
+        case "localhost"  : host, port = "localhost"   , 9999;break
+        case _________: 
+            host = socket.gethostbyname(socket.gethostname())
+    port = int(input("Please enter a portnumber between 9000-65535:\n>"))
+    if 9000 <= port <= 65535: break
+
+    
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, port))
 server.listen()
@@ -49,10 +60,10 @@ myKey = myReadKeys()
 
 def mySend(client, text):
     text = myCipher(text, myKey)
-    return client.send(text)
+    return client.send(text.encode())
 
 def myReadClient(client, *username):
-    message = client.recv(1024)
+    message = client.recv(1024).decode()
     if message:
         return myDecipher(message, myKey)
     else:
